@@ -81,10 +81,12 @@ export default async function Home() {
                     className="bg-white rounded-xl overflow-hidden hover:shadow-xl transition-shadow"
                   >
                     {store.logo && (
-                      <img 
+                      <Image 
                         src={store.logo} 
                         alt={store.name} 
                         className="w-full h-48 object-cover"
+                        width={500}
+                        height={300}
                       />
                     )}
                     <div className="p-6">

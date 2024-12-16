@@ -3,14 +3,15 @@ import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '../../../../lib/mongodb';
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: { storeId: string } }
+  req: NextRequest
 ) {
   try {
     const { db } = await connectToDatabase();
     
+    const storeId = req.nextUrl.pathname.split('/')[3]; // Get storeId from URL
+
     // Validate storeId format
-    if (!ObjectId.isValid(params.storeId)) {
+    if (!ObjectId.isValid(storeId)) {
       return NextResponse.json(
         { success: false, error: 'Invalid store ID' },
         { status: 400 }
@@ -19,7 +20,7 @@ export async function GET(
 
     const store = await db
       .collection('stores')
-      .findOne({ _id: new ObjectId(params.storeId) });
+      .findOne({ _id: new ObjectId(storeId) });
 
     if (!store) {
       return NextResponse.json(

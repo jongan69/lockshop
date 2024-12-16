@@ -3,19 +3,25 @@ import { getServerSession } from 'next-auth';
 import { connectToDatabase } from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
+type ProductResponse = {
+  message?: string;
+  productId?: ObjectId;
+  error?: string;
+}
+
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { storeId: string } }
-) {
+  req: NextRequest
+): Promise<NextResponse<ProductResponse>> {
   try {
-    const { name, description, price, image } = await request.json();
+    const storeId = req.nextUrl.pathname.split('/')[3]; // Get storeId from URL
+    const body = await req.json();
     
     // Connect to database
     const { db } = await connectToDatabase();
     
     // Verify store exists and user owns it
     const store = await db.collection('stores').findOne({
-      _id: new ObjectId(params.storeId)
+      _id: new ObjectId(storeId)
     });
 
     if (!store) {
@@ -24,11 +30,11 @@ export async function POST(
 
     // Create new product
     const product = {
-      storeId: new ObjectId(params.storeId),
-      name,
-      description,
-      price: parseFloat(price),
-      image,
+      storeId: new ObjectId(storeId),
+      name: body.name,
+      description: body.description,
+      price: parseFloat(body.price),
+      image: body.image,
       createdAt: new Date(),
     };
 
