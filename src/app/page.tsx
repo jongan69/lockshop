@@ -1,4 +1,5 @@
-import { Store } from '../../models/Store';
+import type { Store } from '../lib/types';
+import { Store as StoreModel } from '../../models/Store';
 import { connectToDatabase } from '../lib/mongodb';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -6,11 +7,19 @@ import Image from 'next/image';
 export default async function Home() {
   try {
     const mongoose = await connectToDatabase();
-    const stores = await Store.find({});
     
     if (!mongoose) {
       throw new Error('Failed to connect to database');
     }
+
+    const storesQuery = await Promise.race([
+      StoreModel.find({}).lean(),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Store query timed out')), 5000)
+      )
+    ]) as Store[];
+
+    const stores = storesQuery;
 
     return (
       <main className="min-h-screen">
@@ -73,7 +82,7 @@ export default async function Home() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-3xl font-bold text-center mb-12">Featured Stores</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {stores.map((store: any) => (
+                {stores.map((store) => (
                   <Link 
                     key={store._id.toString()} 
                     href={`/store/${store._id.toString()}`}
@@ -118,7 +127,11 @@ export default async function Home() {
     console.error('Error loading stores:', error);
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-red-500">Error loading stores. Please try again later.</p>
+        <p className="text-red-500">
+          {error instanceof Error 
+            ? error.message 
+            : 'Error loading stores. Please try again later.'}
+        </p>
       </div>
     );
   }

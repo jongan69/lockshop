@@ -1,8 +1,10 @@
 export interface Store {
-  _id: string
-  name: string
-  description: string
-  logo?: string
-  products?: any[]
+  _id: { toString: () => string };
+  id: any;
+  name: string;
+  description: string;
+  logo: string;
+  products: any[];
+  ownerPublicKey: string;
   // Add other fields as needed
 } 

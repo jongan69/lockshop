@@ -6,14 +6,7 @@ import Image from 'next/image';
 import { useWallet } from '@solana/wallet-adapter-react';
 import AddProductForm from './AddProductForm';
 import Modal from '@/components/ui/Modal';
-
-interface Store {
-  _id: string;
-  name: string;
-  description: string;
-  logo: string;
-  ownerPublicKey: string;
-}
+import { Store } from '@/lib/types';
 
 export default function StorePage() {
   const params = useParams();
@@ -104,7 +97,7 @@ export default function StorePage() {
             title="Add New Product"
           >
             <AddProductForm 
-              storeId={store._id} 
+              storeId={store.id} 
               onSuccess={() => {
                 setIsAddProductModalOpen(false);
                 router.refresh();
