@@ -5,13 +5,12 @@ import Image from 'next/image';
 
 export default async function Home() {
   try {
-    const { db } = await connectToDatabase();
+    const mongoose = await connectToDatabase();
+    const stores = await Store.find({});
     
-    if (!db) {
+    if (!mongoose) {
       throw new Error('Failed to connect to database');
     }
-
-    const stores = await db.collection('stores').find({}).toArray();
 
     return (
       <main className="min-h-screen">

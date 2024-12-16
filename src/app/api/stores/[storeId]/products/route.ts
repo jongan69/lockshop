@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { Store } from '../../../../../../models/Store';
+import { Product } from '../../../../../../models/Product';
 import { connectToDatabase } from '@/lib/mongodb';
-import { ObjectId } from 'mongodb';
+import mongoose from 'mongoose';
 
 type ProductResponse = {
   message?: string;
-  productId?: ObjectId;
+  productId?: string;
   error?: string;
 }
 
@@ -13,36 +14,28 @@ export async function POST(
   req: NextRequest
 ): Promise<NextResponse<ProductResponse>> {
   try {
-    const storeId = req.nextUrl.pathname.split('/')[3]; // Get storeId from URL
+    const storeId = req.nextUrl.pathname.split('/')[3];
     const body = await req.json();
     
-    // Connect to database
-    const { db } = await connectToDatabase();
+    await connectToDatabase();
     
-    // Verify store exists and user owns it
-    const store = await db.collection('stores').findOne({
-      _id: new ObjectId(storeId)
-    });
-
+    const store = await Store.findById(storeId);
     if (!store) {
       return NextResponse.json({ error: 'Store not found' }, { status: 404 });
     }
 
-    // Create new product
-    const product = {
-      storeId: new ObjectId(storeId),
+    const product = await Product.create({
+      storeId: new mongoose.Types.ObjectId(storeId),
       name: body.name,
       description: body.description,
       price: parseFloat(body.price),
       image: body.image,
       createdAt: new Date(),
-    };
-
-    const result = await db.collection('products').insertOne(product);
+    });
 
     return NextResponse.json({ 
       message: 'Product created successfully',
-      productId: result.insertedId 
+      productId: product._id.toString()
     });
 
   } catch (error) {

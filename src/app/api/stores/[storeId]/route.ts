@@ -1,26 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ObjectId } from 'mongodb';
+import { Store } from '../../../../../models/Store';
 import { connectToDatabase } from '../../../../lib/mongodb';
+import mongoose from 'mongoose';
 
-export async function GET(
-  req: NextRequest
-) {
+interface StoreDocument {
+  _id: mongoose.Types.ObjectId;
+  __v: number;
+  [key: string]: any;
+}
+
+export async function GET(req: NextRequest) {
   try {
-    const { db } = await connectToDatabase();
+    await connectToDatabase();
     
-    const storeId = req.nextUrl.pathname.split('/')[3]; // Get storeId from URL
+    const storeId = req.nextUrl.pathname.split('/')[3];
 
-    // Validate storeId format
-    if (!ObjectId.isValid(storeId)) {
+    if (!mongoose.Types.ObjectId.isValid(storeId)) {
       return NextResponse.json(
         { success: false, error: 'Invalid store ID' },
         { status: 400 }
       );
     }
 
-    const store = await db
-      .collection('stores')
-      .findOne({ _id: new ObjectId(storeId) });
+    const store = await Store.findById(storeId).lean() as StoreDocument;
 
     if (!store) {
       return NextResponse.json(
